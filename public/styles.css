@@ -1,0 +1,132 @@
+:root {
+    --primary-color: #ff9800; /* Construction orange */
+    --secondary-color: #4caf50; /* Construction green */
+    --background-color: #f4f4f9;
+    --text-color: #333;
+    --input-border-color: #ccc;
+    --button-bg-color: var(--primary-color);
+    --button-hover-bg-color: #e68a00;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+}
+
+#app {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+h1 {
+    text-align: center;
+    color: var(--primary-color);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input {
+    width: calc(100% - 24px);
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px;
+    padding-left: 24px; /* Space for icon */
+}
+
+button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: var(--button-bg-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--button-hover-bg-color);
+}
+
+#loading-bar {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.estimate-result {
+    margin-top: 20px;
+}
+
+.job, .total {
+    background: #e9ecef;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+#button-wrapper {
+    text-align: center;
+    margin-bottom: 20px;
+    position: sticky;
+}
+
+#edit-button {
+    display: none;
+}
+
+#estimate-result img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border: solid 2px black;
+    padding: 10px;
+}
+
+#estimate-result a {
+    display: block;
+    margin: 20px auto;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    text-decoration: none;
+}
+    #estimate-result a:hover {
+        color: yellowgreen;
+    } 
+
+/* Media Queries for phone-friendly design */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    #app {
+        padding: 10px;
+    }
+    input {
+        width: calc(100% - 16px);
+    }
+    button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

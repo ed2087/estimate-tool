@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Estimate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .letterhead header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .letterhead .logo img {
+            max-height: 100px;
+        }
+        .letterhead .company-details {
+            text-align: right;
+        }
+        .letterhead main {
+            margin-top: 20px;
+        }
+        .letterhead footer {
+            margin-top: 20px;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+            text-align: center;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="letterhead">
+        <header>
+            <div class="logo">
+                <% if (companyLogo) { %>
+                    <img src="<%= companyLogo %>" alt="Company Logo">
+                <% } %>
+            </div>
+            <div class="company-details">
+                <h1><%= companyName %></h1>
+                <p><%= companyAddress %></p>
+                <p>Phone: <%= companyPhone %> | Email: <%= companyEmail %></p>
+            </div>
+        </header>
+        <main>
+            <h2>Estimate</h2>
+            <div class="estimate-details">
+                <div class="estimate-info">
+                    <p><strong>Estimate Number:</strong> <%= estimateNumber %></p>
+                    <p><strong>Date:</strong> <%= estimateDate %></p>
+                </div>
+                <div class="client-info">
+                    <p><strong>Client Name:</strong> <%= clientName %></p>
+                    <p><strong>Address:</strong> <%= clientAddress %></p>
+                </div>
+            </div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Material Cost ($)</th>
+                        <th>Labor Cost ($)</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% jobDetails.forEach(function(job) { %>
+                        <tr>
+                            <td><%= job.description %></td>
+                            <td><%= job.materialCost.toFixed(2) %></td>
+                            <td><%= job.hourlyRate.toFixed(2) * job.hours.toFixed(2) %></td>
+                            <td><%= job.comments %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </main>
+        <footer>
+            <p>Thank you for your business!</p>
+            <p>Payment terms: Payment due within 30 days.</p>
+        </footer>
+    </div>
+</body>
+</html>
