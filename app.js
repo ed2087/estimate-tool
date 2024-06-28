@@ -4,8 +4,7 @@ const fileUpload = require('express-fileupload');
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
-const pdf = require('html-pdf');
-const htmlToImage = require('node-html-to-image');
+const puppeteer = require('puppeteer');
 const SpellCorrector = require('spelling-corrector');
 
 const app = express();
@@ -72,16 +71,6 @@ app.post('/get-estimate', async (req, res) => {
         const totalBufferedLaborCost = jobDetails.reduce((sum, job) => sum + job.bufferedLaborCost, 0);
         const totalCost = totalMaterialCost + totalBufferedLaborCost;
 
-        // console.log('Total Material Cost:', totalMaterialCost);
-        // console.log('Total Labor Cost:', totalLaborCost);
-        // console.log('Mileage Cost:', mileageCost);
-        // console.log('Gas Cost:', gasCost);
-        // console.log('Wear and Tear Cost:', wearAndTearCost);
-        // console.log('Buffer Cost:', bufferCost);
-        // console.log('Total Buffered Labor Cost:', totalBufferedLaborCost);
-        // console.log('Total Cost:', totalCost);
-        // console.log('Job Details with Buffer:', jobDetails);
-
         const companyLogo = req.files && req.files.companyLogo ? `data:image/jpeg;base64,${req.files.companyLogo.data.toString('base64')}` : null;
 
         const htmlContent = `
@@ -114,7 +103,7 @@ app.post('/get-estimate', async (req, res) => {
                         padding: 10px 20px;
                     }
                     .logo img {
-                        max-width: 300px;
+                        max-height: 100px;
                     }
                     .company-details {
                         text-align: right;
@@ -253,28 +242,23 @@ app.post('/get-estimate', async (req, res) => {
             </html>
         `;
 
-
+        const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+        const page = await browser.newPage();
+        await page.setContent(htmlContent);
+        
+        const pdfBuffer = await page.pdf({ format: 'A4' });
         const pdfFilename = `estimate_${Date.now()}.pdf`;
+        const pdfPath = path.join(uploadsDir, pdfFilename);
+        fs.writeFileSync(pdfPath, pdfBuffer);
+        
+        const imageBuffer = await page.screenshot();
         const imageFilename = `estimate_${Date.now()}.png`;
+        const imagePath = path.join(uploadsDir, imageFilename);
+        fs.writeFileSync(imagePath, imageBuffer);
 
-        pdf.create(htmlContent).toFile(path.join(uploadsDir, pdfFilename), async (err, result) => {
-            if (err) {
-                console.error("PDF creation error:", err);
-                return res.status(500).send(err);
-            }
-            console.log("PDF created:", result.filename);
+        await browser.close();
 
-            await htmlToImage({
-                output: path.join(uploadsDir, imageFilename),
-                html: htmlContent
-            }).then(() => {
-                console.log("Image created:", imageFilename);
-                res.json({ pdfFilename: pdfFilename, imageFilename: imageFilename, jobs: jobDetails, totalCost: totalCost });
-            }).catch(err => {
-                console.error("Image creation error:", err);
-                res.status(500).send(err);
-            });
-        });
+        res.json({ pdfFilename, imageFilename, jobs: jobDetails, totalCost: totalCost });
     } catch (err) {
         console.error("Error processing estimate:", err);
         res.status(500).send(err);
