@@ -11,7 +11,7 @@
         <h1>Estimate Tool</h1>
         <div id="button-wrapper">
             <button type="button" id="preview-button">Preview</button>
-            <button type="button" id="edit-button">Edit</button>
+            <button type="button" id="edit-button" style="display: none;">Edit</button>
         </div>
         <form id="estimate-form" enctype="multipart/form-data">
             <div class="form-group">
@@ -64,13 +64,5 @@
         <div id="loading-bar">Loading...</div>
     </div>
     <script src="/script.js"></script>
-
-
-    <!-- script set to todays date -->
-    <script>
-        document.getElementById('estimateDate').valueAsDate = new Date();
-    </script>
-
-
 </body>
 </html>

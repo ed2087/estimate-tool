@@ -11,8 +11,9 @@ const app = express();
 const spellCorrector = new SpellCorrector();
 spellCorrector.loadDictionary();
 
-const MILEAGE_RATE = 0.56; // Example rate per mile
-const WEAR_AND_TEAR = 0.1; // Example wear and tear rate
+const MILEAGE_RATE = 0.56; // Example rate per mile (if needed)
+const MPG = 25; // Average fuel economy in miles per gallon
+const WEAR_AND_TEAR_RATE = 0.001; // 1% wear and tear rate
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -53,15 +54,17 @@ app.post('/get-estimate', async (req, res) => {
         }
 
         const totalMaterialCost = jobDetails.reduce((sum, job) => sum + job.materialCost, 0);
-        const totalLaborCost = jobDetails.reduce((sum, job) => sum + job.hourlyRate * job.hours, 0);
+        const totalLaborCost = jobDetails.reduce((sum, job) => sum + (job.hourlyRate * job.hours), 0);
 
         const mileageParsed = parseFloat(mileage) || 0; // Ensure mileage is parsed correctly
         const gasPriceParsed = parseFloat(gasPrice) || 0; // Ensure gas price is parsed correctly
-        const mileageCost = mileageParsed * MILEAGE_RATE;
-        const gasCost = mileageParsed * gasPriceParsed;
-        const wearAndTearCost = totalMaterialCost * WEAR_AND_TEAR;
-        const bufferCost = mileageCost + gasCost + wearAndTearCost;
-        const bufferPerJob = bufferCost / jobDetails.length;
+        const gasUsage = mileageParsed / MPG;
+        const gasCost = gasUsage * gasPriceParsed;
+        const wearAndTearCost = totalMaterialCost * WEAR_AND_TEAR_RATE;
+        const bufferCost = gasCost + wearAndTearCost;
+
+        // Calculate buffer per job if there are jobs
+        const bufferPerJob = jobDetails.length ? bufferCost / jobDetails.length : 0;
 
         jobDetails = jobDetails.map(job => {
             job.bufferedLaborCost = job.hourlyRate * job.hours + bufferPerJob;
@@ -72,6 +75,31 @@ app.post('/get-estimate', async (req, res) => {
         const totalCost = totalMaterialCost + totalBufferedLaborCost;
 
         const companyLogo = req.files && req.files.companyLogo ? `data:image/jpeg;base64,${req.files.companyLogo.data.toString('base64')}` : null;
+
+        // Debug all variables
+        console.log({
+            companyName: companyName,
+            companyAddress: companyAddress,
+            companyPhone: companyPhone,
+            companyEmail: companyEmail,
+            clientName: clientName,
+            clientAddress: clientAddress,
+            estimateDate: estimateDate,
+            numberOfJobs: numberOfJobs,
+            mileage: mileage,
+            gasPrice: gasPrice,
+            jobs: jobs,
+            jobDetails: jobDetails,
+            totalMaterialCost: totalMaterialCost,
+            totalLaborCost: totalLaborCost,
+            gasUsage: gasUsage,
+            gasCost: gasCost,
+            wearAndTearCost: wearAndTearCost,
+            bufferCost: bufferCost,
+            bufferPerJob: bufferPerJob,
+            totalBufferedLaborCost: totalBufferedLaborCost,
+            totalCost: totalCost
+        });
 
         const htmlContent = `
             <!DOCTYPE html>
@@ -247,41 +275,19 @@ app.post('/get-estimate', async (req, res) => {
         await page.setContent(htmlContent);
         
         const pdfBuffer = await page.pdf({ format: 'A4' });
-        const pdfFilename = `estimate_${Date.now()}.pdf`;
-        const pdfPath = path.join(uploadsDir, pdfFilename);
-        fs.writeFileSync(pdfPath, pdfBuffer);
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'inline; filename="estimate.pdf"',
+            'Content-Length': pdfBuffer.length
+        });
         
-        const imageBuffer = await page.screenshot();
-        const imageFilename = `estimate_${Date.now()}.png`;
-        const imagePath = path.join(uploadsDir, imageFilename);
-        fs.writeFileSync(imagePath, imageBuffer);
+        res.send(pdfBuffer);
 
         await browser.close();
-
-        res.json({ pdfFilename, imageFilename, jobs: jobDetails, totalCost: totalCost });
     } catch (err) {
         console.error("Error processing estimate:", err);
         res.status(500).send(err);
-    }
-});
-
-app.get('/download-pdf', (req, res) => {
-    const { file } = req.query;
-    const filePath = path.join(uploadsDir, file);
-    if (fs.existsSync(filePath)) {
-        res.download(filePath);
-    } else {
-        res.status(404).send('File not found');
-    }
-});
-
-app.get('/download-image', (req, res) => {
-    const { file } = req.query;
-    const filePath = path.join(uploadsDir, file);
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).send('File not found');
     }
 });
 
